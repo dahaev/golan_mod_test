@@ -2,7 +2,6 @@ package connect
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,6 +11,8 @@ type Value struct {
 	ProjectID   string `json:"ИДПроекта"`
 	ProjectName string `json:"ИмяПроекта"`
 	TaskName    string `json:"НазваниеЗадачи"`
+	StartDate   string `json:"ДатаНачалаЗадачи"`
+	EndDate     string `json:"ДатаОкончанияЗадачи"`
 }
 
 type Projects struct {
@@ -20,17 +21,14 @@ type Projects struct {
 	Odata_nextlink string  `json:"odata.nextLink"`
 }
 
-var Data []*Projects
-
 func AnoData() {
 	count := 0
 	baseUrl := "https://spanorsi.lancloud.ru/pwa/_api/ProjectData/"
-	queryUrl := "Задачи?$select=ИДПроекта,ИмяПроекта,НазваниеЗадачи"
+	queryUrl := "Задачи?$select=ИДПроекта,ИмяПроекта,НазваниеЗадачи,ДатаНачалаЗадачи,ДатаОкончанияЗадачи"
 	jsonUrl := "&$format=json"
 	Url := baseUrl + queryUrl + jsonUrl
 
 	for {
-		fmt.Println("Заход в цикл")
 
 		client := http.Client{}
 		req, err := http.NewRequest("GET", Url, nil)
@@ -56,14 +54,12 @@ func AnoData() {
 			log.Fatal()
 		}
 
-		Data = append(Data, &pro)
+		db(&pro)
 		count += len(pro.Values)
-		fmt.Println(pro.Odata_nextlink)
 
 		if &pro.Odata_nextlink == nil {
 			break
 		}
 		Url = baseUrl + *&pro.Odata_nextlink + jsonUrl
-		fmt.Println(count)
 	}
 }
